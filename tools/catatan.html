@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catatan Sederhana - Portal Utilitas</title>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .text-gradient { background: linear-gradient(135deg, #a78bfa 0%, #60a5fa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .btn-gradient { background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%); }
+    </style>
+</head>
+<body class="bg-gray-900 flex items-center justify-center min-h-screen p-5">
+    <div class="w-full max-w-3xl p-8 bg-gray-800/70 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-700/50">
+        <h1 class="text-3xl font-bold text-center mb-6 text-gradient">Catatan Sederhana</h1>
+        <div class="note-editor p-4 bg-gray-900/60 rounded-lg">
+            <input type="text" id="noteTitle" placeholder="Judul Catatan" class="w-full p-2 mb-2 bg-gray-700 text-gray-200 rounded-lg border border-gray-600 focus:ring-2 focus:ring-purple-500">
+            <textarea id="noteContent" placeholder="Tulis catatan Anda di sini..." class="w-full h-28 p-2 bg-gray-700 text-gray-200 rounded-lg border border-gray-600 focus:ring-2 focus:ring-purple-500"></textarea>
+            <input type="hidden" id="noteId">
+            <button id="saveNoteBtn" class="w-full mt-2 py-2 text-white rounded-lg btn-gradient hover:opacity-90 transition-opacity">Simpan Catatan</button>
+        </div>
+        <h2 class="text-xl font-semibold text-gray-200 mt-6 mb-4">Daftar Catatan:</h2>
+        <div id="notesList" class="space-y-4 max-h-80 overflow-y-auto pr-2"></div>
+        <div class="text-center mt-6">
+            <a href="../index.html" class="text-purple-400 hover:text-blue-500 font-semibold transition-colors">Kembali ke Menu Utama</a>
+        </div>
+    </div>
+    <script>
+        const noteTitleEl = document.getElementById('noteTitle'); const noteContentEl = document.getElementById('noteContent'); const noteIdEl = document.getElementById('noteId'); const saveNoteBtn = document.getElementById('saveNoteBtn'); const notesListEl = document.getElementById('notesList'); function getNotes() { return JSON.parse(localStorage.getItem('simpleNotes')) || []; } function saveNotes(notes) { localStorage.setItem('simpleNotes', JSON.stringify(notes)); }
+        function displayNotes() { const notes = getNotes(); notesListEl.innerHTML = ''; if (notes.length === 0) { notesListEl.innerHTML = '<p class="text-center text-gray-400">Belum ada catatan.</p>'; return; } notes.forEach(note => { const noteDiv = document.createElement('div'); noteDiv.className = 'bg-gray-700/80 p-4 rounded-lg shadow-sm border border-gray-600'; noteDiv.innerHTML = `<h3 class="font-bold text-lg text-purple-400 mb-1">${note.title}</h3><p class="text-gray-300 text-sm mb-2 whitespace-pre-wrap">${note.content.substring(0, 150)}${note.content.length > 150 ? '...' : ''}</p><small class="text-gray-400 text-xs">Dibuat: ${new Date(note.timestamp).toLocaleString()}</small><div class="flex gap-2 mt-3"><button onclick="editNote('${note.id}')" class="px-3 py-1 text-sm text-white bg-blue-500 hover:bg-blue-600 rounded">Edit</button><button onclick="deleteNote('${note.id}')" class="px-3 py-1 text-sm text-white bg-red-500 hover:bg-red-600 rounded">Hapus</button></div>`; notesListEl.appendChild(noteDiv); }); }
+        saveNoteBtn.addEventListener('click', () => { const title = noteTitleEl.value.trim(); const content = noteContentEl.value.trim(); const id = noteIdEl.value; if (!title || !content) { alert("Judul dan isi catatan tidak boleh kosong."); return; } let notes = getNotes(); if (id) { const noteIndex = notes.findIndex(note => note.id === id); if (noteIndex > -1) { notes[noteIndex].title = title; notes[noteIndex].content = content; notes[noteIndex].timestamp = Date.now(); } } else { const newNote = { id: 'note_' + Date.now(), title, content, timestamp: Date.now() }; notes.unshift(newNote); } saveNotes(notes); clearEditor(); displayNotes(); });
+        function clearEditor() { noteTitleEl.value = ''; noteContentEl.value = ''; noteIdEl.value = ''; saveNoteBtn.textContent = 'Simpan Catatan'; } window.editNote = function(id) { const notes = getNotes(); const noteToEdit = notes.find(note => note.id === id); if (noteToEdit) { noteTitleEl.value = noteToEdit.title; noteContentEl.value = noteToEdit.content; noteIdEl.value = noteToEdit.id; saveNoteBtn.textContent = 'Perbarui Catatan'; noteTitleEl.focus(); } }
+        window.deleteNote = function(id) { if (confirm("Yakin ingin menghapus catatan ini?")) { let notes = getNotes(); notes = notes.filter(note => note.id !== id); saveNotes(notes); clearEditor(); displayNotes(); } }
+        displayNotes();
+    </script>
+</body>
+</html>
